@@ -1,4 +1,5 @@
-# 
+# "Pentomino covering game"
+# William Di Luigi
 
 from Tkinter import Tk, Canvas, ALL
 
@@ -54,13 +55,12 @@ class Game:
         )
     )
     
-    def __init__(self, num_rows, num_cols, window_title, best_possible):
+    def __init__(self, num_rows, num_cols, best_possible):
         self.rows = num_rows
         self.cols = num_cols
         self.expectedBest = best_possible
         # create the root and the canvas
         root = Tk()
-        root.title(window_title)
         # local function to unbind events
         self.unbind = root.unbind
         # local function to change title
@@ -492,7 +492,8 @@ class Game:
         self.editMode = False
         self.history = []
         self.redrawAll()
+        self.refreshScore()
 
 if __name__ == '__main__':
-    game = Game(8, 8, "0 / 12", 12)
+    game = Game(12, 12, 27)
     game.start()
