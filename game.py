@@ -116,9 +116,10 @@ class Game:
 
     def doPaint(self, x, y, color, pattern=""):
         for i in xrange(self.numPieces):
-            if 0 <= x + self.pos[self.rotation][i][0] < self.rows and \
-                0 <= y + self.pos[self.rotation][i][1] < self.cols:
-                for item in self.gridBG[ x + self.pos[self.rotation][i][0] ][ y + self.pos[self.rotation][i][1] ][0]:
+            new_x = x + self.pos[self.rotation][i][0]
+            new_y = y + self.pos[self.rotation][i][1]
+            if 0 <= new_x < self.rows and 0 <= new_y < self.cols:
+                for item in self.gridBG[new_x][new_y][0]:
                     self.canvas.itemconfigure(item, fill=color, stipple=pattern)
 
     def correctPending(self):
@@ -166,17 +167,20 @@ class Game:
     def setBusy(self, x, y):
         changes = []
         for i in xrange(self.numPieces):
-            changes.append((x + self.pos[self.rotation][i][0], y + self.pos[self.rotation][i][1]))
-            self.gridBusy[ changes[-1][0] ][ changes[-1][1] ] = self.onBoard
+            new_x = x + self.pos[self.rotation][i][0]
+            new_y = y + self.pos[self.rotation][i][1]
+            changes.append((new_x, new_y))
+            self.gridBusy[new_x][new_y] = self.onBoard
         self.correctPending()
         return changes
 
     def addPentomino(self, x, y):
         changes = []
         for i in xrange(self.numPieces):
+            new_x = x + self.pos[self.rotation][i][0]
+            new_y = y + self.pos[self.rotation][i][1]
             changes.append(self.drawCell(
-                x + self.pos[self.rotation][i][0], y + self.pos[self.rotation][i][1],
-                self.colors['pentomino'], self.info[self.rotation][i]
+                new_x, new_y, self.colors['pentomino'], self.info[self.rotation][i]
             ))
         return changes
 
