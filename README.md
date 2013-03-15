@@ -12,3 +12,11 @@ Usage
 ```bash
 python game.py
 ```
+
+Keyboard controls
+-----------------
+
+* Restart the game: "R" key
+* Rotate pentomino: left/right arrow keys (or Mousewheel scroll)
+* Undo last action: Backspace key
+* Select a pentomino to be removed: Spacebar key
