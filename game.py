@@ -3,6 +3,7 @@
 
 from Tkinter import Tk, Canvas, ALL
 
+
 class Game:
     margin = 10
     cellSize = 35
@@ -18,43 +19,73 @@ class Game:
     }
     possibleRotations = 4
     numPieces = 5
+    """For each rotation of the polyomino, it should be specified the
+    "offset" from the center (0, 0) for every piece. The offset is a
+    tuple (dx, dy). The center (0, 0) should appear somewhere in the
+    list as well as other pieces. The order of pieces doesn't matter
+    """
     pos = (
-        ((2,0),  (1,0),  (0,0), (0,1),  (0,2)),
-        ((-2,0), (-1,0), (0,0), (0,1),  (0,2)),
-        ((-2,0), (-1,0), (0,0), (0,-1), (0,-2)),
-        ((2,0),  (1,0),  (0,0), (0,-1), (0,-2))
+        ((2, 0),  (1, 0),  (0, 0), (0, 1),  (0, 2)),
+        ((-2, 0), (-1, 0), (0, 0), (0, 1),  (0, 2)),
+        ((-2, 0), (-1, 0), (0, 0), (0, -1), (0, -2)),
+        ((2, 0),  (1, 0),  (0, 0), (0, -1), (0, -2))
     )
+    """For each rotation and for each piece of the polyomino it should
+    be specified a bitmask to instruct the program on how to draw that
+    piece. Each piece of polyomino will be splitted in 9 subrectangles,
+    according to the scheme:
+        .___.___________.___.
+        |   |           |   |
+        | 0 |     1     | 2 |
+        |___|___________|___|
+        |   |           |   |
+        |   |           |   |
+        | 3 |           | 4 |
+        |   |           |   |
+        |___|___________|___|
+        |   |           |   |
+        | 5 |     6     | 7 |
+        |___|___________|___|
+
+    The middle rectangle will always be full.
+    If you want the i-th rectangle to be full, then the i-th bit of the
+    bitmask should be set. For example if you want to draw a CROSS piece
+    then you will need to have 1-th, 3-th, 4-th and 6-th bits set: so
+    the bitmask of the CROSS piece is (2**1)+(2**3)+(2**4)+(2**6)=90.
+    For readability it's better to set explicitly every bit of the mask,
+    like the pentomino's shape encoded in the "info" array, for example
+    """
     info = (
         (
-            ((1 << 0) | (0 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7)),
-            ((1 << 0) | (0 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (0 << 6) | (1 << 7)),
-            ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (0 << 4) | (1 << 5) | (0 << 6) | (1 << 7)),
-            ((1 << 0) | (1 << 1) | (1 << 2) | (0 << 3) | (0 << 4) | (1 << 5) | (1 << 6) | (1 << 7)),
-            ((1 << 0) | (1 << 1) | (1 << 2) | (0 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7))
+            ((0 << 0) | (1 << 1) | (0 << 2) | (0 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7)),
+            ((0 << 0) | (1 << 1) | (0 << 2) | (0 << 3) | (0 << 4) | (0 << 5) | (1 << 6) | (0 << 7)),
+            ((0 << 0) | (0 << 1) | (0 << 2) | (0 << 3) | (1 << 4) | (0 << 5) | (1 << 6) | (0 << 7)),
+            ((0 << 0) | (0 << 1) | (0 << 2) | (1 << 3) | (1 << 4) | (0 << 5) | (0 << 6) | (0 << 7)),
+            ((0 << 0) | (0 << 1) | (0 << 2) | (1 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7))
         ),
         (
-            ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (0 << 6) | (1 << 7)),
-            ((1 << 0) | (0 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (0 << 6) | (1 << 7)),
-            ((1 << 0) | (0 << 1) | (1 << 2) | (1 << 3) | (0 << 4) | (1 << 5) | (1 << 6) | (1 << 7)),
-            ((1 << 0) | (1 << 1) | (1 << 2) | (0 << 3) | (0 << 4) | (1 << 5) | (1 << 6) | (1 << 7)),
-            ((1 << 0) | (1 << 1) | (1 << 2) | (0 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7))
+            ((0 << 0) | (0 << 1) | (0 << 2) | (0 << 3) | (0 << 4) | (0 << 5) | (1 << 6) | (0 << 7)),
+            ((0 << 0) | (1 << 1) | (0 << 2) | (0 << 3) | (0 << 4) | (0 << 5) | (1 << 6) | (0 << 7)),
+            ((0 << 0) | (1 << 1) | (0 << 2) | (0 << 3) | (1 << 4) | (0 << 5) | (0 << 6) | (0 << 7)),
+            ((0 << 0) | (0 << 1) | (0 << 2) | (1 << 3) | (1 << 4) | (0 << 5) | (0 << 6) | (0 << 7)),
+            ((0 << 0) | (0 << 1) | (0 << 2) | (1 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7))
         ),
         (
-            ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (0 << 6) | (1 << 7)),
-            ((1 << 0) | (0 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (0 << 6) | (1 << 7)),
-            ((1 << 0) | (0 << 1) | (1 << 2) | (0 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7)),
-            ((1 << 0) | (1 << 1) | (1 << 2) | (0 << 3) | (0 << 4) | (1 << 5) | (1 << 6) | (1 << 7)),
-            ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (0 << 4) | (1 << 5) | (1 << 6) | (1 << 7))
+            ((0 << 0) | (0 << 1) | (0 << 2) | (0 << 3) | (0 << 4) | (0 << 5) | (1 << 6) | (0 << 7)),
+            ((0 << 0) | (1 << 1) | (0 << 2) | (0 << 3) | (0 << 4) | (0 << 5) | (1 << 6) | (0 << 7)),
+            ((0 << 0) | (1 << 1) | (0 << 2) | (1 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7)),
+            ((0 << 0) | (0 << 1) | (0 << 2) | (1 << 3) | (1 << 4) | (0 << 5) | (0 << 6) | (0 << 7)),
+            ((0 << 0) | (0 << 1) | (0 << 2) | (0 << 3) | (1 << 4) | (0 << 5) | (0 << 6) | (0 << 7))
         ),
         (
-            ((1 << 0) | (0 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7)),
-            ((1 << 0) | (0 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (0 << 6) | (1 << 7)),
-            ((1 << 0) | (1 << 1) | (1 << 2) | (0 << 3) | (1 << 4) | (1 << 5) | (0 << 6) | (1 << 7)),
-            ((1 << 0) | (1 << 1) | (1 << 2) | (0 << 3) | (0 << 4) | (1 << 5) | (1 << 6) | (1 << 7)),
-            ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (0 << 4) | (1 << 5) | (1 << 6) | (1 << 7))
+            ((0 << 0) | (1 << 1) | (0 << 2) | (0 << 3) | (0 << 4) | (0 << 5) | (0 << 6) | (0 << 7)),
+            ((0 << 0) | (1 << 1) | (0 << 2) | (0 << 3) | (0 << 4) | (0 << 5) | (1 << 6) | (0 << 7)),
+            ((0 << 0) | (0 << 1) | (0 << 2) | (1 << 3) | (0 << 4) | (0 << 5) | (1 << 6) | (0 << 7)),
+            ((0 << 0) | (0 << 1) | (0 << 2) | (1 << 3) | (1 << 4) | (0 << 5) | (0 << 6) | (0 << 7)),
+            ((0 << 0) | (0 << 1) | (0 << 2) | (0 << 3) | (1 << 4) | (0 << 5) | (0 << 6) | (0 << 7))
         )
     )
-    
+
     def __init__(self, num_rows, num_cols, best_possible):
         self.rows = num_rows
         self.cols = num_cols
@@ -86,12 +117,17 @@ class Game:
         root.bind("<Motion>", self.mouseOver)
         root.bind("<Leave>", self.mouseOut)
         root.bind("<Button-1>", self.mouseClick)
-        root.bind('<Button-4>', self.rollWheel)
-        root.bind('<Button-5>', self.rollWheel)
+        root.bind("<Button-4>", self.rollWheel)
+        root.bind("<Button-5>", self.rollWheel)
+        root.bind("<MouseWheel>", self.rollWheelDelta)
         root.bind("<Key>", self.keyPressed)
 
     def gameOver(self):
+        """Game over: clears background, unbinds events so the user can
+        enjoy his result, updates title: "You won"
+        """
         self.correctPending()
+        self.updateTitle("You won !!")
         self.unbind("<Motion>")
         self.unbind("<Leave>")
         self.unbind("<Button-1>")
@@ -100,21 +136,32 @@ class Game:
         self.unbind("<Key>")
 
     def refreshScore(self):
+        """Visually updates the score reached by the user: actually it
+        just changes the window title :P
+        """
         self.updateTitle(str(self.onBoard) + " / " + str(self.expectedBest))
 
     def checkAvailable(self, x, y):
+        """Checks if the cell at (x, y) is on the board AND is not busy
+        """
         return 0 <= x < self.rows and 0 <= y < self.cols and not self.gridBusy[x][y]
 
     def checkFree(self, x, y):
+        """Checks whether the position (x, y) is available or not.
+        Returns the color to use for the background ('busy' or 'free')
+        """
         for i in xrange(self.numPieces):
-            if not self.checkAvailable(
-                x + self.pos[self.rotation][i][0],
-                y + self.pos[self.rotation][i][1]
-                ):
+            new_x = x + self.pos[self.rotation][i][0]
+            new_y = y + self.pos[self.rotation][i][1]
+            if not self.checkAvailable(new_x, new_y):
                 return self.colors['busy']
         return self.colors['free']
 
     def doPaint(self, x, y, color, pattern=""):
+        """Does the actual painting: it paints with the specified color
+        and pattern the background at (x, y). If a pattern isn't
+        specified it won't be used
+        """
         for i in xrange(self.numPieces):
             new_x = x + self.pos[self.rotation][i][0]
             new_y = y + self.pos[self.rotation][i][1]
@@ -123,16 +170,24 @@ class Game:
                     self.canvas.itemconfigure(item, fill=color, stipple=pattern)
 
     def correctPending(self):
+        """Restores to the normal state the last painted background
+        """
         if self.lastPainted:
             self.doPaint(self.lastPainted[0], self.lastPainted[1], self.colors['idle'], "gray75")
             self.lastPainted = None
 
     def paintBackground(self, x, y, color):
+        """Updates background to visually indicate whether the position
+        (x, y) is available or not
+        """
         self.correctPending()
         self.lastPainted = (x, y)
         self.doPaint(x, y, color)
 
     def mouseOut(self, event):
+        """Catch mouseout in order to clean the last background painted
+        when the cursor leaves the grid
+        """
         if self.editMode and self.lastChanged:
             self.changeColor(self.lastChanged, self.colors['pentomino'])
             return
@@ -140,19 +195,45 @@ class Game:
         self.lastPosition = None
 
     def mouseOver(self, event):
+        """Catch mouseover to paint the background accordingly to the
+        availability of the pentomino space under the cursor
+        """
         if self.editMode:
             self.setEditCursor(event)
             return
         x = (event.y - self.margin) / self.cellSize
         y = (event.x - self.margin) / self.cellSize
         if self.lastPosition == (x, y):
-            return # I've already drawn this
-        if not ( 0 <= x < self.rows and 0 <= y < self.cols ):
-            return # not on the grid
+            return  # I've already drawn this
+        if not (0 <= x < self.rows and 0 <= y < self.cols):
+            return  # not on the grid
         self.lastPosition = (x, y)
         self.paintBackground(x, y, self.checkFree(x, y))
 
+    def mouseClick(self, event):
+        """Catch mouse click to confirm the insertion or removal (if in
+        Edit mode) of a pentomino on the cell under the mouse pointer
+        """
+        if self.editMode:
+            self.applyEditing(event)
+            self.clearEditCursor(event)
+            return
+        x = (event.y - self.margin) / self.cellSize
+        y = (event.x - self.margin) / self.cellSize
+        if self.checkFree(x, y) == self.colors['busy']:
+            return  # clicked busy position
+        self.onBoard += 1
+        self.refreshScore()
+        self.history.append((
+            self.setBusy(x, y),
+            self.addPentomino(x, y)
+        ))
+        if self.onBoard == self.expectedBest:
+            self.gameOver()
+
     def goBackInTime(self):
+        """Removes the most recently inserted pentomino
+        """
         if (len(self.history) == 0):
             return
         notBusy, notVisible = self.history.pop()
@@ -165,6 +246,9 @@ class Game:
         self.refreshScore()
 
     def setBusy(self, x, y):
+        """Sets as "busy" the cells occupied by a pentomino centered at
+        (x, y) rotated as the current rotation stored in self.rotation
+        """
         changes = []
         for i in xrange(self.numPieces):
             new_x = x + self.pos[self.rotation][i][0]
@@ -175,6 +259,11 @@ class Game:
         return changes
 
     def addPentomino(self, x, y):
+        """Adds a new pentomino with its center in the position (x, y)
+        of the grid and returns the list of changes done. Each element
+        of the list returned is a cell (that is the list of IDs of the
+        new drawn items)
+        """
         changes = []
         for i in xrange(self.numPieces):
             new_x = x + self.pos[self.rotation][i][0]
@@ -184,40 +273,49 @@ class Game:
             ))
         return changes
 
-    def mouseClick(self, event):
-        if self.editMode:
-            self.applyEditing(event)
-            self.clearEditCursor(event)
-            return
-        x = (event.y - self.margin) / self.cellSize
-        y = (event.x - self.margin) / self.cellSize
-        if self.checkFree(x, y) == self.colors['busy']:
-            return # clicked busy position
-        self.onBoard += 1
-        self.refreshScore()
-        self.history.append((
-            self.setBusy(x, y),
-            self.addPentomino(x, y)
-        ))
-        if self.onBoard == self.expectedBest:
-            self.gameOver()
-
     def doRotation(self, delta):
+        """Sets the current rotation value to be rotated delta times by
+        90 degrees CW. If delta is negative the rotation is CCW
+        """
         self.correctPending()
         self.rotation = (self.rotation + delta) % self.possibleRotations
 
     def rollWheel(self, event):
+        """Catch mousewheel scrolling to change the rotation
+        """
         if event.num == 4:
-            self.doRotation( -1 ) # CCW rotation
+            self.doRotation(-1)  # CCW rotation
         elif event.num == 5:
-            self.doRotation( +1 ) # CW rotation
+            self.doRotation(+1)  # CW rotation
         else:
             return
         x = (event.y - self.margin) / self.cellSize
         y = (event.x - self.margin) / self.cellSize
         self.paintBackground(x, y, self.checkFree(x, y))
-    
+
+    def rollWheelDelta(self, event):
+        """Catch mousewheel scrolling to change the rotation: this is
+        a version for newer mice (I think) because I had to add it to
+        make the rotation work properly with a newer mouse. It would be
+        nice to merge this routine with self.rollWheel()
+        """
+        if event.delta < 0:
+            self.doRotation(-1)  # CCW rotation
+        elif event.delta > 0:
+            self.doRotation(+1)  # CW rotation
+        else:
+            return
+        x = (event.y - self.margin) / self.cellSize
+        y = (event.x - self.margin) / self.cellSize
+        self.paintBackground(x, y, self.checkFree(x, y))
+
     def applyEditing(self, event):
+        """Only called if in Edit move: removes the pentomino that is
+        currently under the mouse pointer. The pentomino is popped from
+        history and every other (more recent) pentomino is updated with
+        a new pentNumber (decreased by 1) to mantain the consistence of
+        history ordering
+        """
         self.lastChanged = None
         x = (event.y - self.margin) / self.cellSize
         y = (event.x - self.margin) / self.cellSize
@@ -237,23 +335,12 @@ class Game:
             self.gridBusy[i][j] = 0
         self.onBoard -= 1
         self.refreshScore()
-    
-    def clearEditCursor(self, event):
-        self.editMode = False
-        self.updateCursor("arrow")
-        x = (event.y - self.margin) / self.cellSize
-        y = (event.x - self.margin) / self.cellSize
-        self.paintBackground(x, y, self.checkFree(x, y))
-    
-    def changeColor(self, pentNumber, color):
-        if not pentNumber:
-            return
-        assert(len(self.history) >= pentNumber)
-        for cell in self.history[pentNumber - 1][1]:
-            for item in cell[0]:
-                self.canvas.itemconfigure(item, fill=color)
-    
+
     def setEditCursor(self, event):
+        """Enters edit mode and sets the "X" cursor
+        """
+        self.editMode = True
+        self.updateCursor("X_cursor")
         self.changeColor(self.lastChanged, self.colors['pentomino'])
         x = (event.y - self.margin) / self.cellSize
         y = (event.x - self.margin) / self.cellSize
@@ -265,7 +352,29 @@ class Game:
         self.lastChanged = self.gridBusy[x][y]
         self.changeColor(self.lastChanged, self.colors['pent_edit'])
 
+    def clearEditCursor(self, event):
+        """Exits from edit mode and restores the classic arrow cursor
+        """
+        self.editMode = False
+        self.updateCursor("arrow")
+        x = (event.y - self.margin) / self.cellSize
+        y = (event.x - self.margin) / self.cellSize
+        self.paintBackground(x, y, self.checkFree(x, y))
+
+    def changeColor(self, pentNumber, color):
+        """Updates the internal color of the pentNumber-th pentomino in
+        the insertion history
+        """
+        if not pentNumber:
+            return
+        assert(len(self.history) >= pentNumber)
+        for cell in self.history[pentNumber - 1][1]:
+            for item in cell[0]:
+                self.canvas.itemconfigure(item, fill=color)
+
     def keyPressed(self, event):
+        """Catches when a key is pressed
+        """
         if event.char == "r":
             self.init()
             return
@@ -275,16 +384,14 @@ class Game:
                 self.clearEditCursor(event)
                 return
             self.correctPending()
-            self.editMode = True
-            self.updateCursor("X_cursor")
             self.setEditCursor(event)
             return
         elif event.keysym == "BackSpace":
             self.goBackInTime()
         elif event.keysym == "Right":
-            self.doRotation( +1 ) # CW rotation
+            self.doRotation(+1)  # CW rotation
         elif event.keysym == "Left":
-            self.doRotation( -1 ) # CCW rotation
+            self.doRotation(-1)  # CCW rotation
         else:
             return
         x = (event.y - self.margin) / self.cellSize
@@ -292,6 +399,8 @@ class Game:
         self.paintBackground(x, y, self.checkFree(x, y))
 
     def redrawAll(self):
+        """Cleans the canvas and draws a new grid
+        """
         self.canvas.delete(ALL)
         self.gridBG = []
         self.gridBusy = []
@@ -318,7 +427,13 @@ class Game:
                 dash=(self.dashBlack, self.dashWhite)
             )
 
-    def drawCell(self, x, y, bgColor, openSection=0, borderColor="", bgPattern=""):
+    def drawCell(self, x, y, bgColor, closedSection=255, borderColor="", bgPattern=""):
+        """Draws a new cell at position (x, y) of the grid. Returns a
+        2-tuple of lists: the first list contains the rectangles (at
+        most 9) and the second list contains the lines (at most 8).
+        These rectangles and lines represent the cell's shape for this
+        pentomino piece (as defined in "info" array)
+        """
         left = self.margin + y * self.cellSize
         right = left + self.cellSize
         top = self.margin + x * self.cellSize
@@ -335,7 +450,7 @@ class Game:
             fill=bgColor, outline=borderColor, stipple=bgPattern
         ))
         # border sections
-        if not openSection & (1 << 0):
+        if closedSection & (1 << 0):
             sections[0].append(self.canvas.create_rectangle(
                 left,
                 top,
@@ -343,7 +458,7 @@ class Game:
                 1 + bottom - adjustValue,
                 fill=bgColor, outline=borderColor, stipple=bgPattern
             ))
-        if not openSection & (1 << 1):
+        if closedSection & (1 << 1):
             sections[0].append(self.canvas.create_rectangle(
                 left + self.pentPadding,
                 top,
@@ -351,7 +466,7 @@ class Game:
                 1 + bottom - adjustValue,
                 fill=bgColor, outline=borderColor, stipple=bgPattern
             ))
-        if not openSection & (1 << 2):
+        if closedSection & (1 << 2):
             sections[0].append(self.canvas.create_rectangle(
                 left + adjustValue,
                 top,
@@ -359,7 +474,7 @@ class Game:
                 1 + bottom - adjustValue,
                 fill=bgColor, outline=borderColor, stipple=bgPattern
             ))
-        if not openSection & (1 << 3):
+        if closedSection & (1 << 3):
             sections[0].append(self.canvas.create_rectangle(
                 left,
                 top + self.pentPadding,
@@ -367,7 +482,7 @@ class Game:
                 1 + bottom - self.pentPadding,
                 fill=bgColor, outline=borderColor, stipple=bgPattern
             ))
-        if not openSection & (1 << 4):
+        if closedSection & (1 << 4):
             sections[0].append(self.canvas.create_rectangle(
                 left + adjustValue,
                 top + self.pentPadding,
@@ -375,7 +490,7 @@ class Game:
                 1 + bottom - self.pentPadding,
                 fill=bgColor, outline=borderColor, stipple=bgPattern
             ))
-        if not openSection & (1 << 5):
+        if closedSection & (1 << 5):
             sections[0].append(self.canvas.create_rectangle(
                 left,
                 top + adjustValue,
@@ -383,7 +498,7 @@ class Game:
                 1 + bottom,
                 fill=bgColor, outline=borderColor, stipple=bgPattern
             ))
-        if not openSection & (1 << 6):
+        if closedSection & (1 << 6):
             sections[0].append(self.canvas.create_rectangle(
                 left + self.pentPadding,
                 top + adjustValue,
@@ -391,7 +506,7 @@ class Game:
                 1 + bottom,
                 fill=bgColor, outline=borderColor, stipple=bgPattern
             ))
-        if not openSection & (1 << 7):
+        if closedSection & (1 << 7):
             sections[0].append(self.canvas.create_rectangle(
                 left + adjustValue,
                 top + adjustValue,
@@ -400,28 +515,28 @@ class Game:
                 fill=bgColor, outline=borderColor, stipple=bgPattern
             ))
         # main section's borders
-        if openSection & (1 << 1):
+        if not closedSection & (1 << 1):
             sections[1].append(self.canvas.create_line(
                 left + self.pentPadding,
                 top + self.pentPadding,
                 1 + right - self.pentPadding,
                 bottom - adjustValue
             ))
-        if openSection & (1 << 3):
+        if not closedSection & (1 << 3):
             sections[1].append(self.canvas.create_line(
                 left + self.pentPadding,
                 top + self.pentPadding,
                 right - adjustValue,
                 1 + bottom - self.pentPadding
             ))
-        if openSection & (1 << 4):
+        if not closedSection & (1 << 4):
             sections[1].append(self.canvas.create_line(
                 left + adjustValue,
                 top + self.pentPadding,
                 right - self.pentPadding,
                 1 + bottom - self.pentPadding
             ))
-        if openSection & (1 << 6):
+        if not closedSection & (1 << 6):
             sections[1].append(self.canvas.create_line(
                 left + self.pentPadding,
                 top + adjustValue,
@@ -429,56 +544,56 @@ class Game:
                 bottom - self.pentPadding
             ))
         # border sections' borders
-        if (not openSection & (1 << 1)) and (openSection & (1 << 0)):
+        if (closedSection & (1 << 1)) and not (closedSection & (1 << 0)):
             sections[1].append(self.canvas.create_line(
                 left + self.pentPadding,
                 top,
                 right - adjustValue,
                 1 + bottom - adjustValue
             ))
-        if (not openSection & (1 << 1)) and (openSection & (1 << 2)):
+        if (closedSection & (1 << 1)) and not (closedSection & (1 << 2)):
             sections[1].append(self.canvas.create_line(
                 left + adjustValue,
                 top,
                 right - self.pentPadding,
                 1 + bottom - adjustValue
             ))
-        if (not openSection & (1 << 4)) and (openSection & (1 << 2)):
+        if (closedSection & (1 << 4)) and not (closedSection & (1 << 2)):
             sections[1].append(self.canvas.create_line(
                 left + adjustValue,
                 top + self.pentPadding,
                 1 + right,
                 bottom - adjustValue
             ))
-        if (not openSection & (1 << 4)) and (openSection & (1 << 7)):
+        if (closedSection & (1 << 4)) and not (closedSection & (1 << 7)):
             sections[1].append(self.canvas.create_line(
                 left + adjustValue,
                 top + adjustValue,
                 1 + right,
                 bottom - self.pentPadding
             ))
-        if (not openSection & (1 << 6)) and (openSection & (1 << 7)):
+        if (closedSection & (1 << 6)) and not (closedSection & (1 << 7)):
             sections[1].append(self.canvas.create_line(
                 left + adjustValue,
                 top + adjustValue,
                 right - self.pentPadding,
                 1 + bottom
             ))
-        if (not openSection & (1 << 6)) and (openSection & (1 << 5)):
+        if (closedSection & (1 << 6)) and not (closedSection & (1 << 5)):
             sections[1].append(self.canvas.create_line(
                 left + self.pentPadding,
                 top + adjustValue,
                 right - adjustValue,
                 1 + bottom
             ))
-        if (not openSection & (1 << 3)) and (openSection & (1 << 5)):
+        if (closedSection & (1 << 3)) and not (closedSection & (1 << 5)):
             sections[1].append(self.canvas.create_line(
                 left,
                 top + adjustValue,
                 1 + right - adjustValue,
                 bottom - self.pentPadding
             ))
-        if (not openSection & (1 << 3)) and (openSection & (1 << 0)):
+        if (closedSection & (1 << 3)) and not (closedSection & (1 << 0)):
             sections[1].append(self.canvas.create_line(
                 left,
                 top + self.pentPadding,
