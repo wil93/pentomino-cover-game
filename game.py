@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 # "Pentomino covering game"
 # William Di Luigi
 
@@ -310,7 +312,7 @@ class Game:
         self.paintBackground(x, y, self.checkFree(x, y))
 
     def applyEditing(self, event):
-        """Only called if in Edit move: removes the pentomino that is
+        """Only called if in Edit mode: removes the pentomino that is
         currently under the mouse pointer. The pentomino is popped from
         history and every other (more recent) pentomino is updated with
         a new pentNumber (decreased by 1) to mantain the consistence of
