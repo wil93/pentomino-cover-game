@@ -94,7 +94,8 @@ class Game:
         self.expectedBest = best_possible
         # create the root and the canvas
         root = Tk()
-        # local function to unbind events
+        # local function to bind/unbind events
+        self.bind = root.bind
         self.unbind = root.unbind
         # local function to change title
         self.updateTitle = root.title
@@ -115,19 +116,14 @@ class Game:
         root.geometry('%dx%d+%d+%d' % (self.canvasWidth, self.canvasHeight, x, y))
         root.resizable(width=0, height=0)
         self.init()
-        # set up events
-        root.bind("<Motion>", self.mouseOver)
-        root.bind("<Leave>", self.mouseOut)
-        root.bind("<Button-1>", self.mouseClick)
-        root.bind("<Button-4>", self.rollWheel)
-        root.bind("<Button-5>", self.rollWheel)
-        root.bind("<MouseWheel>", self.rollWheelDelta)
+        # set up keypress events
         root.bind("<Key>", self.keyPressed)
 
     def gameOver(self):
         """Game over: clears background, unbinds events so the user can
         enjoy his result, updates title: "You won"
         """
+        self.over = True
         self.correctPending()
         self.updateTitle("You won !!")
         self.unbind("<Motion>")
@@ -135,7 +131,6 @@ class Game:
         self.unbind("<Button-1>")
         self.unbind("<Button-4>")
         self.unbind("<Button-5>")
-        self.unbind("<Key>")
 
     def refreshScore(self):
         """Visually updates the score reached by the user: actually it
@@ -380,6 +375,8 @@ class Game:
         if event.char == "r":
             self.init()
             return
+        elif self.over:
+            return
         elif event.char == ' ':
             if self.editMode:
                 self.changeColor(self.lastChanged, self.colors['pentomino'])
@@ -605,6 +602,7 @@ class Game:
         return sections
 
     def init(self):
+        self.over = False
         self.onBoard = 0
         self.rotation = 0
         self.lastPosition = None
@@ -614,6 +612,13 @@ class Game:
         self.history = []
         self.redrawAll()
         self.refreshScore()
+        # set up events
+        self.bind("<Motion>", self.mouseOver)
+        self.bind("<Leave>", self.mouseOut)
+        self.bind("<Button-1>", self.mouseClick)
+        self.bind("<Button-4>", self.rollWheel)
+        self.bind("<Button-5>", self.rollWheel)
+        self.bind("<MouseWheel>", self.rollWheelDelta)
 
 if __name__ == '__main__':
     game = Game(12, 12, 27)
