@@ -1,17 +1,43 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 # "Pentomino covering game"
 # William Di Luigi
 
-from Tkinter import Tk, Canvas, ALL
+from tkinter import Tk, Canvas, ALL
 
 
 class Game:
-    margin = 10
-    cellSize = 35
-    pentPadding = 5
+    scale = 1
+
+    @property
+    def margin(self):
+        return 10 * self.scale
+
+    @property
+    def cellSize(self):
+        return 35 * self.scale
+
+    @property
+    def pentPadding(self):
+        return 5 * self.scale
+
     # it's better if: cellSize % (dashBlack + dashWhite) == 0
-    dashBlack, dashWhite = 3, 2
+    @property
+    def dashBlack(self):
+        return 3 * self.scale
+
+    @property
+    def dashWhite(self):
+        return 2 * self.scale
+
+    @property
+    def canvasWidth(self):
+        return 2 * self.margin + self.cols * self.cellSize
+
+    @property
+    def canvasHeight(self):
+        return 2 * self.margin + self.rows * self.cellSize
+
     colors = {
         'idle'      : 'white',
         'free'      : 'yellow',
@@ -106,13 +132,16 @@ class Game:
         # get screen width and height
         ws = root.winfo_screenwidth()
         hs = root.winfo_screenheight()
-        self.canvasWidth = 2 * self.margin + self.cols * self.cellSize
-        self.canvasHeight = 2 * self.margin + self.rows * self.cellSize
+
+        # fix scaling for higher resolutions
+        if max(self.canvasWidth / ws, self.canvasHeight / hs) < 0.45:
+            self.scale = 2
+
         self.canvas = Canvas(root, width=self.canvasWidth, height=self.canvasHeight)
         self.canvas.pack()
         # calculate position x, y
-        x = (ws - self.canvasWidth) / 2
-        y = (hs - self.canvasHeight) / 2
+        x = (ws - self.canvasWidth) // 2
+        y = (hs - self.canvasHeight) // 2
         root.geometry('%dx%d+%d+%d' % (self.canvasWidth, self.canvasHeight, x, y))
         root.resizable(width=0, height=0)
         self.init()
@@ -147,7 +176,7 @@ class Game:
         """Checks whether the position (x, y) is available or not.
         Returns the color to use for the background ('busy' or 'free')
         """
-        for i in xrange(self.numPieces):
+        for i in range(self.numPieces):
             new_x = x + self.pos[self.rotation][i][0]
             new_y = y + self.pos[self.rotation][i][1]
             if not self.checkAvailable(new_x, new_y):
@@ -159,7 +188,7 @@ class Game:
         and pattern the background at (x, y). If a pattern isn't
         specified it won't be used
         """
-        for i in xrange(self.numPieces):
+        for i in range(self.numPieces):
             new_x = x + self.pos[self.rotation][i][0]
             new_y = y + self.pos[self.rotation][i][1]
             if 0 <= new_x < self.rows and 0 <= new_y < self.cols:
@@ -198,8 +227,8 @@ class Game:
         if self.editMode:
             self.setEditCursor(event)
             return
-        x = (event.y - self.margin) / self.cellSize
-        y = (event.x - self.margin) / self.cellSize
+        x = (event.y - self.margin) // self.cellSize
+        y = (event.x - self.margin) // self.cellSize
         if self.lastPosition == (x, y):
             return  # I've already drawn this
         if not (0 <= x < self.rows and 0 <= y < self.cols):
@@ -215,8 +244,8 @@ class Game:
             self.applyEditing(event)
             self.clearEditCursor(event)
             return
-        x = (event.y - self.margin) / self.cellSize
-        y = (event.x - self.margin) / self.cellSize
+        x = (event.y - self.margin) // self.cellSize
+        y = (event.x - self.margin) // self.cellSize
         if self.checkFree(x, y) == self.colors['busy']:
             return  # clicked busy position
         self.onBoard += 1
@@ -247,7 +276,7 @@ class Game:
         (x, y) rotated as the current rotation stored in self.rotation
         """
         changes = []
-        for i in xrange(self.numPieces):
+        for i in range(self.numPieces):
             new_x = x + self.pos[self.rotation][i][0]
             new_y = y + self.pos[self.rotation][i][1]
             changes.append((new_x, new_y))
@@ -262,7 +291,7 @@ class Game:
         new drawn items)
         """
         changes = []
-        for i in xrange(self.numPieces):
+        for i in range(self.numPieces):
             new_x = x + self.pos[self.rotation][i][0]
             new_y = y + self.pos[self.rotation][i][1]
             changes.append(self.drawCell(
@@ -286,8 +315,8 @@ class Game:
             self.doRotation(+1)  # CW rotation
         else:
             return
-        x = (event.y - self.margin) / self.cellSize
-        y = (event.x - self.margin) / self.cellSize
+        x = (event.y - self.margin) // self.cellSize
+        y = (event.x - self.margin) // self.cellSize
         self.paintBackground(x, y, self.checkFree(x, y))
 
     def rollWheelDelta(self, event):
@@ -302,8 +331,8 @@ class Game:
             self.doRotation(+1)  # CW rotation
         else:
             return
-        x = (event.y - self.margin) / self.cellSize
-        y = (event.x - self.margin) / self.cellSize
+        x = (event.y - self.margin) // self.cellSize
+        y = (event.x - self.margin) // self.cellSize
         self.paintBackground(x, y, self.checkFree(x, y))
 
     def applyEditing(self, event):
@@ -314,8 +343,8 @@ class Game:
         history ordering
         """
         self.lastChanged = None
-        x = (event.y - self.margin) / self.cellSize
-        y = (event.x - self.margin) / self.cellSize
+        x = (event.y - self.margin) // self.cellSize
+        y = (event.x - self.margin) // self.cellSize
         if not (0 <= x < self.rows and 0 <= y < self.cols):
             return
         if not self.gridBusy[x][y]:
@@ -339,8 +368,8 @@ class Game:
         self.editMode = True
         self.updateCursor("X_cursor")
         self.changeColor(self.lastChanged, self.colors['pentomino'])
-        x = (event.y - self.margin) / self.cellSize
-        y = (event.x - self.margin) / self.cellSize
+        x = (event.y - self.margin) // self.cellSize
+        y = (event.x - self.margin) // self.cellSize
         if not (0 <= x < self.rows and 0 <= y < self.cols):
             return
         if not self.gridBusy[x][y]:
@@ -354,8 +383,8 @@ class Game:
         """
         self.editMode = False
         self.updateCursor("arrow")
-        x = (event.y - self.margin) / self.cellSize
-        y = (event.x - self.margin) / self.cellSize
+        x = (event.y - self.margin) // self.cellSize
+        y = (event.x - self.margin) // self.cellSize
         self.paintBackground(x, y, self.checkFree(x, y))
 
     def changeColor(self, pentNumber, color):
@@ -393,8 +422,8 @@ class Game:
             self.doRotation(-1)  # CCW rotation
         else:
             return
-        x = (event.y - self.margin) / self.cellSize
-        y = (event.x - self.margin) / self.cellSize
+        x = (event.y - self.margin) // self.cellSize
+        y = (event.x - self.margin) // self.cellSize
         self.paintBackground(x, y, self.checkFree(x, y))
 
     def redrawAll(self):
